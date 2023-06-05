@@ -1,16 +1,31 @@
+#include "FlashMemoryDevice.h"
 #include "DeviceDriver.h"
+#include "windows.h"
 
-DeviceDriver::DeviceDriver(FlashMemoryDevice* hardware) : m_hardware(hardware)
-{}
-
-int DeviceDriver::read(long address)
+unsigned char DeviceDriver::read(long address)
 {
-    // TODO: implement this method properly
-    return (int)(m_hardware->read(address));
+	int num_tries = kMaxNumRead;
+	bool is_first = true;
+	unsigned char read_data = 0;
+
+	while (num_tries--)
+	{
+		if (is_first)
+		{
+			read_data = m_hardware->read(address);
+			is_first = false;
+			continue;
+		}
+		Sleep(200);
+
+		if (read_data != m_hardware->read(address))
+		{
+			throw MyException(MyException::kReadFailException);
+		}
+	}
+	return read_data;
 }
 
-void DeviceDriver::write(long address, int data)
+void DeviceDriver::write(long address, unsigned char data)
 {
-    // TODO: implement this method
-    m_hardware->write(address, (unsigned char)data);
 }
