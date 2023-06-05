@@ -16,7 +16,6 @@ unsigned char DeviceDriver::read(long address)
 			is_first = false;
 			continue;
 		}
-		Sleep(200);
 
 		if (read_data != m_hardware->read(address))
 		{
@@ -28,4 +27,9 @@ unsigned char DeviceDriver::read(long address)
 
 void DeviceDriver::write(long address, unsigned char data)
 {
+	if (m_hardware->read(address) != kInvalidData)
+	{
+		throw MyException(MyException::kWriteFailException);
+	}
+	m_hardware->write(address, data);
 }
