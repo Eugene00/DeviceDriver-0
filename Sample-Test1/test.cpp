@@ -63,3 +63,38 @@ TEST(FlashTest, ReadSucceed)
 	DeviceDriver flash_driver(&mock_flash_device);
 	EXPECT_THAT(kReadData, Eq(flash_driver.read(kReadAddress)));
 }
+
+TEST(FlashTest, WriteFail)
+{
+	constexpr long kAddress = 0x01;
+	constexpr unsigned char written_data = 0x01;
+	constexpr unsigned char new_data = 0x02;
+
+	MockFlashMemoryDevice mock_flash_device;
+
+	EXPECT_CALL(mock_flash_device, read(kAddress))
+		.Times(1)
+		.WillOnce(Return(written_data));
+	DeviceDriver flash_driver(&mock_flash_device);
+	EXPECT_ANY_THROW(flash_driver.write(kAddress, new_data));
+}
+
+TEST(FlashTest, WriteSuceed)
+{
+	constexpr long kAddress = 0x01;
+	constexpr unsigned char new_data = 0x02;
+
+	MockFlashMemoryDevice mock_flash_device;
+
+	EXPECT_CALL(mock_flash_device, read(kAddress))
+		.Times(6)
+		.WillOnce(Return(DeviceDriver::kInvalidData))
+		.WillRepeatedly(Return(new_data));
+	EXPECT_CALL(mock_flash_device, write(kAddress, new_data))
+		.Times(1)
+		.WillOnce(Return());
+
+	DeviceDriver flash_driver(&mock_flash_device);
+	flash_driver.write(kAddress, new_data);
+	EXPECT_THAT(new_data, Eq(flash_driver.read(kAddress)));
+}
